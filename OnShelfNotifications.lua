@@ -49,7 +49,8 @@ function TimerElapsed()
             INNER JOIN Tracking ON Tracking.TransactionNumber = Transactions.TransactionNumber 
             INNER JOIN ]] .. usersTable .. [[ ON ]] .. usersTable .. [[.Username = Transactions.Username 
             WHERE Transactions.TransactionStatus = 'Customer Notified via E-Mail'
-            AND Tracking.ChangedTo = 'Customer Notified via E-Mail']];
+            AND Tracking.ChangedTo = 'Customer Notified via E-Mail'
+            AND DATEADD(day, ]] .. Settings.NotificationWaitDays .. [[, Tracking.DateTime) <= CAST(GETDATE() AS DATE)]];
     
             if Settings.NVTGC:find("%w") then
                 Settings.NVTGC = "'" .. Settings.NVTGC:gsub("%s*,%s*", ","):gsub(",", "','") .. "'";
@@ -99,7 +100,10 @@ function DailyRunTimeReset()
     local today = os.date("%A"):lower();
 
     if lastCheckedDay ~= today then
-        log:Debug("Date has changed. hasRunToday will be set to false and cached SystemManagerAddonInterval will be updated.");
+        -- We don't want to log this on the first run of the addon where lastCheckedDay will be nil.
+        if lastCheckedDay then
+            log:Debug("Date has changed. hasRunToday will be set to false and cached SystemManagerAddonInterval will be updated.");
+        end
         hasRunToday = false;
         lastCheckedDay = today;
 
@@ -174,13 +178,17 @@ function ProcessRequests(requests)
         -- Routing items to the RemoveFromShelfQueue happens first so notifications don't get
         -- sent for items that are removed.
         local routed = false;
+        local transactionNumber = requests[i]["TransactionNumber"];
 
-        if type(Settings.DueDateRemovalDays) == "number" then
+        log:Debug("Processing transaction " .. transactionNumber);
+
+        if type(Settings.DueDateRemovalDays) == "number" and Settings.RemoveFromShelfQueue:find("%a") then
             local month, day, year = tostring(requests[i]["DueDate"]):match("(%d+)/(%d+)/(%d+)");
             local dueDateSeconds = os.time({year=year, month=month, day=day});
 
             if currentDateSeconds >= (dueDateSeconds - (Settings.DueDateRemovalDays * 24 * 60 * 60)) then
-                ExecuteCommand("Route", {requests[i]["TransactionNumber"], Settings.RemoveFromShelfQueue});
+                log:Debug("Transaction " .. transactionNumber .. " is " .. tostring(Settings.DueDateRemovalDays) .. " days or less from its due date. Routing to " .. Settings.RemoveFromShelfQueue .. ".");
+                ExecuteCommand("Route", {transactionNumber, Settings.RemoveFromShelfQueue});
                 routed = true;
             end
         end
@@ -188,20 +196,21 @@ function ProcessRequests(requests)
         local month, day, year = tostring(requests[i]["OnShelfDate"]):match("(%d+)/(%d+)/(%d+)");
         local onShelfDateSeconds = os.time({year=year, month=month, day=day});
 
-        if not routed and type(Settings.OnShelfRemovalDays) == "number" then
+        if not routed and type(Settings.OnShelfRemovalDays) == "number" and Settings.RemoveFromShelfQueue:find("%a") then
             if currentDateSeconds >= (onShelfDateSeconds + (Settings.OnShelfRemovalDays * 24 * 60 * 60)) then
-                ExecuteCommand("Route", {requests[i]["TransactionNumber"], Settings.RemoveFromShelfQueue});
+                log:Debug("Transaction " .. transactionNumber .. " has been on the shelf for at least " .. tostring(Settings.OnShelfRemovalDays) .. " days. Routing to " .. Settings.RemoveFromShelfQueue .. ".");
+                ExecuteCommand("Route", {transactionNumber, Settings.RemoveFromShelfQueue});
                 routed = true;
             end
         end
 
-        local notificationStartDaySeconds = onShelfDateSeconds + (Settings.NotificationWaitDays * 24 * 60 * 60);
-
-        if not routed and currentDateSeconds >= notificationStartDaySeconds then
+        if not routed then
             if Settings.LibraryUseOnlyEmailName:find("%a") and requests[i]["LibraryUseOnly"] == "Yes" then
-                ExecuteCommand("SendTransactionNotification", {requests[i]["TransactionNumber"], Settings.LibraryUseOnlyEmailName});
+                log:Debug("Sending on shelf notification with template " .. Settings.LibraryUseOnlyEmailName .. " for transaction " .. transactionNumber .. ".");
+                ExecuteCommand("SendTransactionNotification", {transactionNumber, Settings.LibraryUseOnlyEmailName});
             else
-                ExecuteCommand("SendTransactionNotification", {requests[i]["TransactionNumber"], Settings.EmailName});
+                log:Debug("Sending on shelf notification with template " .. Settings.EmailName .. " for transaction " .. transactionNumber .. ".");
+                ExecuteCommand("SendTransactionNotification", {transactionNumber, Settings.EmailName});
             end
         end
     end
