@@ -183,13 +183,19 @@ function ProcessRequests(requests)
         log:Debug("Processing transaction " .. transactionNumber);
 
         if type(Settings.DueDateRemovalDays) == "number" and Settings.RemoveFromShelfQueue:find("%a") then
-            local month, day, year = tostring(requests[i]["DueDate"]):match("(%d+)/(%d+)/(%d+)");
-            local dueDateSeconds = os.time({year=year, month=month, day=day});
+            local dueDate = tostring(requests[i]["DueDate"]);
 
-            if currentDateSeconds >= (dueDateSeconds - (Settings.DueDateRemovalDays * 24 * 60 * 60)) then
-                log:Debug("Transaction " .. transactionNumber .. " is " .. tostring(Settings.DueDateRemovalDays) .. " days or less from its due date. Routing to " .. Settings.RemoveFromShelfQueue .. ".");
-                ExecuteCommand("Route", {transactionNumber, Settings.RemoveFromShelfQueue});
-                routed = true;
+            if not dueDate or not dueDate:find("%d+/%d+/%d+") then
+                log:Warn("Transaction " .. transactionNumber .. " does not have a valid due date. It cannot be routed to " .. Settings.RemoveFromShelfQueue .. " based on due date.");
+            else
+                local month, day, year = dueDate:match("(%d+)/(%d+)/(%d+)");
+                local dueDateSeconds = os.time({year=year, month=month, day=day});
+    
+                if currentDateSeconds >= (dueDateSeconds - (Settings.DueDateRemovalDays * 24 * 60 * 60)) then
+                    log:Debug("Transaction " .. transactionNumber .. " is " .. tostring(Settings.DueDateRemovalDays) .. " days or less from its due date. Routing to " .. Settings.RemoveFromShelfQueue .. ".");
+                    ExecuteCommand("Route", {transactionNumber, Settings.RemoveFromShelfQueue});
+                    routed = true;
+                end
             end
         end
 
