@@ -49,7 +49,7 @@ function TimerElapsed()
                 usersTable = "UsersALL";
             end
     
-            local queryString = [[SELECT DISTINCT Transactions.TransactionNumber, Transactions.LibraryUseOnly, Transactions.DueDate, Tracking.DateTime FROM Transactions 
+            local queryString = [[SELECT DISTINCT Transactions.TransactionNumber, Transactions.LibraryUseOnly, Transactions.DueDate, Tracking.DateTime, Tracking. FROM Transactions 
             INNER JOIN Tracking ON Tracking.TransactionNumber = Transactions.TransactionNumber 
             INNER JOIN ]] .. usersTable .. [[ ON ]] .. usersTable .. [[.Username = Transactions.Username 
             WHERE Transactions.TransactionStatus = '.. Settings.ReferenceAssistanceWaitQueue ..'
@@ -74,7 +74,7 @@ function TimerElapsed()
 
                     requests[index]["TransactionNumber"] = queryResults.Rows:get_Item(i):get_Item("TransactionNumber");
                     requests[index]["LibraryUseOnly"] = queryResults.Rows:get_Item(i):get_Item("LibraryUseOnly");
-                    requests[index]["DueDate"] = queryResults.Rows:get_Item(i):get_Item("DueDate");
+                    requests[index]["ChangedTo"] = queryResults.Rows:get_Item(i):get_Item("ChangedTo");
                     requests[index]["OnShelfDate"] = queryResults.Rows:get_Item(i):get_Item("DateTime");
                 end
             end
