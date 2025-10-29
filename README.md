@@ -1,2 +1,2 @@
-# ILLiad-OnShelfNotification-ServerAddon
-Regularly notifies patrons about items that are on the shelf for them after the initial notification is sent.
+# ILLiad-ReferenceAssistanceWorkflow-ServerAddon
+Notifies patrons about items that are awaiting reference assistance, and cancels stale requests.
