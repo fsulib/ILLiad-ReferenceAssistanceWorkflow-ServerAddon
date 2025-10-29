@@ -37,11 +37,15 @@
     <Setting name="ReferenceAssistanceWaitQueue" value="" type="string">
       <Description>Queue for items awaiting reference assistance. Leave blank to use default value "ReferenceAssistance".</Description>
     </Setting>
-
     <Setting name="ReferenceAssistanceCancelledQueue" value="" type="string">
       <Description>Queue for items that have been cancelled by ILL staff. Leave blank to use default value "CancelledByILLStaff".</Description>
     </Setting>
-
+    <Setting name="RequesterReminderWaitDays" value="" type="string">
+      <Description>Number of days to wait before notifications begin to be sent.</Description>
+    </Setting>
+    <Setting name="RequestCancellationWaitDays" value="" type="string">
+      <Description>Number of days to wait before cancelling a request.</Description>
+    </Setting>
 
   </Settings>
   <Forms />

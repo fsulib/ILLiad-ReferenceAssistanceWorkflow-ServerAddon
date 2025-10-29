@@ -2,7 +2,7 @@ luanet.load_assembly("log4net");
 
 local types = {}
 types["log4net.LogManager"] = luanet.import_type("log4net.LogManager");
-local log = types["log4net.LogManager"].GetLogger("AtlasSystems.Addons.OnShelfNotifications");
+local log = types["log4net.LogManager"].GetLogger("AtlasSystems.Addons.ReferenceAssistanceWorkflow");
 
 local Settings = {};
 Settings.NVTGC = GetSetting("NVTGC");
@@ -17,6 +17,8 @@ Settings.DueDateRemovalDays = tonumber(GetSetting("DueDateRemovalDays"));
 Settings.RemoveFromShelfQueue = GetSetting("RemoveFromShelfQueue");
 Settings.ReferenceAssistanceWaitQueue = GetSetting("ReferenceAssistanceWaitQueue");
 Settings.ReferenceAssistanceCancelledQueue = GetSetting("ReferenceAssistanceCancelledQueue");
+Settings.RequesterReminderWaitDays = GetSetting("RequesterReminderWaitDays");
+Settings.RequestCancellationWaitDays = GetSetting("RequestCancellationWaitDays");
 
 local isCurrentlyProcessing = false;
 local sharedServerSupport = false;
@@ -52,7 +54,7 @@ function TimerElapsed()
             INNER JOIN ]] .. usersTable .. [[ ON ]] .. usersTable .. [[.Username = Transactions.Username 
             WHERE Transactions.TransactionStatus = '.. Settings.ReferenceAssistanceWaitQueue ..'
             AND Tracking.ChangedTo = '.. Settings.ReferenceAssistanceWaitQueue ..'
-            AND DATEADD(day, ]] .. Settings.NotificationWaitDays .. [[, Tracking.DateTime) <= CAST(GETDATE() AS DATE)]];
+            AND DATEADD(day, ]] .. Settings.RequesterReminderWaitDays .. [[, Tracking.DateTime) <= CAST(GETDATE() AS DATE)]];
     
             if Settings.NVTGC:find("%w") then
                 Settings.NVTGC = "'" .. Settings.NVTGC:gsub("%s*,%s*", ","):gsub(",", "','") .. "'";
