@@ -1,12 +1,12 @@
 <Configuration>
-  <Name>On Shelf Notifications</Name>
+  <Name>Reference Assistance Workflow</Name>
   <Author>Atlas Systems, Inc.</Author>
   <Version>1.0.1</Version>
   <Active>true</Active>
   <Type>Server</Type>
-  <Description>Sends notifications for requests in Customer Notified via E-Mail at regular intervals to remind patrons that they have items waiting to be picked up.</Description>
+  <Description>Monitors requests in the "Reference Assistance" queue, sends reminder notifications to requester, and sends requests to the "Cancelled by ILL Staff" queue.</Description>
   <Settings>
-    <Setting name="NVTGC" value="" type="string">
+    <Setting name="NVTGC" value="" type="string">Cancelled by ILL Staff
       <Description>Comma-separated list of NVTGCs to process. Please list out all NVTGCs as they would appear in the NVTGC field on the Users form. If left blank, the addon will process requests from all NVTGCs.</Description>
     </Setting>
     <Setting name="EmailName" value="" type="string">
@@ -33,9 +33,19 @@
     <Setting name="RemoveFromShelfQueue" value="" type="string">
       <Description>Queue for items that should be removed from the shelf and returned to the lender. Leave blank if you are not using the OnShelfRemovalDays or DueDateRemovalDays settings.</Description>
     </Setting>
+
+    <Setting name="ReferenceAssistanceWaitQueue" value="" type="string">
+      <Description>Queue for items awaiting reference assistance. Leave blank to use default value "ReferenceAssistance".</Description>
+    </Setting>
+
+    <Setting name="ReferenceAssistanceCancelledQueue" value="" type="string">
+      <Description>Queue for items that have been cancelled by ILL staff. Leave blank to use default value "CancelledByILLStaff".</Description>
+    </Setting>
+
+
   </Settings>
   <Forms />
   <Files>
-    <File>OnShelfNotifications.lua</File>
+    <File>ReferenceAssistanceWorkflow.lua</File>
   </Files>
 </Configuration>

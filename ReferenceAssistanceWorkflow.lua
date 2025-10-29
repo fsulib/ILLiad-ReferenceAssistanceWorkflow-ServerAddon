@@ -15,6 +15,8 @@ Settings.NotificationWaitDays = GetSetting("NotificationWaitDays");
 Settings.OnShelfRemovalDays = tonumber(GetSetting("OnShelfRemovalDays"));
 Settings.DueDateRemovalDays = tonumber(GetSetting("DueDateRemovalDays"));
 Settings.RemoveFromShelfQueue = GetSetting("RemoveFromShelfQueue");
+Settings.ReferenceAssistanceWaitQueue = GetSetting("ReferenceAssistanceWaitQueue");
+Settings.ReferenceAssistanceCancelledQueue = GetSetting("ReferenceAssistanceCancelledQueue");
 
 local isCurrentlyProcessing = false;
 local sharedServerSupport = false;
@@ -48,8 +50,8 @@ function TimerElapsed()
             local queryString = [[SELECT DISTINCT Transactions.TransactionNumber, Transactions.LibraryUseOnly, Transactions.DueDate, Tracking.DateTime FROM Transactions 
             INNER JOIN Tracking ON Tracking.TransactionNumber = Transactions.TransactionNumber 
             INNER JOIN ]] .. usersTable .. [[ ON ]] .. usersTable .. [[.Username = Transactions.Username 
-            WHERE Transactions.TransactionStatus = 'Customer Notified via E-Mail'
-            AND Tracking.ChangedTo = 'Customer Notified via E-Mail'
+            WHERE Transactions.TransactionStatus = '.. Settings.ReferenceAssistanceWaitQueue ..'
+            AND Tracking.ChangedTo = '.. Settings.ReferenceAssistanceWaitQueue ..'
             AND DATEADD(day, ]] .. Settings.NotificationWaitDays .. [[, Tracking.DateTime) <= CAST(GETDATE() AS DATE)]];
     
             if Settings.NVTGC:find("%w") then
@@ -92,7 +94,7 @@ function TimerElapsed()
 
         isCurrentlyProcessing = false;
     else
-        log:Debug("Still processing requests for on shelf notifications.");
+        log:Debug("Still processing requests with Reference Assistance Workflow.");
     end
 end
 
@@ -123,7 +125,7 @@ function DailyRunTimeReset()
     end
     
     if hasRunToday then
-        log:Debug("On Shelf Notifications has already run today and will not run again until the next designated day.");
+        log:Debug("Reference Assistance Workflow has already run today and will not run again until the next designated day.");
     end
 end
 
